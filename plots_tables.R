@@ -1,10 +1,11 @@
 #Install packages
 install.packages("pastecs")
-
+install.packages("ggpubr")
 #Load packages
 library(pastecs)
 library(tidyverse)
 library(xlsx)
+library(ggpubr)
 
 # Setting options
 options(scipen=999)
@@ -17,7 +18,7 @@ drug_f <- function(x,y,z) {
 # Filter data 
 drug_graph <- df_3 %>%
   filter(Scope == {{x}}) %>%
-  ggplot(aes(Date, Availability)) + geom_line(aes(col=kategoria))
+  ggplot(aes(Date, Availability)) + geom_line(aes(col=kategoria)) + scale_y_continuous(limits = c(0,100))
 
 # Save file 
 ggsave(plot = drug_graph,filename = y,path = "D:/covid_drugs/Images", device = "png", dpi = 600 )
