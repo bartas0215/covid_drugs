@@ -5,6 +5,7 @@ library(ggpubr)
 library(scales)
 library(ggforce)
 library(tools)
+library(zoo)
 
 # Median below 50 - manuscript ------------------------------------------
 
@@ -32,24 +33,34 @@ df_6 <- df_6 %>%
 df_6 <- df_6 %>%
   mutate(Scope = str_replace_all(Scope, fixed("Medoxomil"), replacement = "medoxomil"))
 
-df_6$Scope<-gsub("+"," + ",df_6$Scope,fixed = TRUE)
-
 #Make space between plus sign
-df_6 <- apply(df_6,2,function(x)gsub('\\+', " + ",x))
-
-df_6 <- as_tibble(df_6)
-
-df_6$Date <- as.Date(df_6$Date, format= "%Y-%m-%d")
-
-df_6$Availability <- as.double(df_6$Availability)
+df_6$Scope<-gsub("+"," + ",df_6$Scope,fixed = TRUE)
 
 str(df_6)
 
+# Build unqiue factors
+df_6$Category <- factor(df_6$Category,levels=unique(df_6$Category))
+
+# Add moving average
+df_6_7 <- df_6%>%
+  mutate(MA_7 = rollmean(Availability, k = 7, fill = NA)) 
+  
+df_6_7 <- df_6_7 %>%
+  group_by(Scope) %>%
+  summarise(n.sc =n(),
+            var.sc = var(MA_7,na.rm = TRUE),
+            sd.sc = sqrt(var.sc)) %>%
+          mutate(se.mpg = sd.sc / sqrt(n.sc),
+         lower.ci.sc = MA_7 - qt(1 - (0.05 / 2), n.sc - 1) * se.sc,
+         upper.ci.sc = MA_7 + qt(1 - (0.05 / 2), n.sc - 1) * se.sc)
+
+
+
 # Plot all drugs in a list
-my_plots <- list( df_6 %>%
-  ggplot(aes(Date, Availability, group = Category))  +  geom_line()+ facet_wrap(~ Scope) + scale_x_date(labels = date_format("%m/%y"))+
-    theme(axis.title.x=element_blank(),axis.title.y = element_text(size = 40),panel.spacing.x = unit(1, "lines"))+ 
-    labs(y="Availability [%]") + theme_bw(base_size = 15))
+my_plots <- list( df_6_7 %>%
+  ggplot(aes(Date, MA_7))  +  geom_line(aes(col=Category))+ facet_wrap(~ Category + Scope) + theme_bw() + scale_x_date(labels = date_format("%m/%y"))+
+    theme(axis.title.x=element_blank(),axis.title.y = element_text(size = 20),panel.spacing.x = unit(1, "lines"),legend.position = "none")+ 
+    labs(y="Availability [%]")) 
 
 # Put all plots in one figure
 xx <-ggarrange(plotlist = my_plots)

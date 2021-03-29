@@ -4,6 +4,7 @@ library(xlsx)
 library(ggpubr)
 library(scales)
 library(ggforce)
+library(zoo)
 
 options(digits=2)
 
@@ -45,6 +46,11 @@ df_6_5 <- df_6 %>%
 df_6_6 <- df_6 %>% 
   group_by(Scope) %>%
   summarise(Min = min(Availability))
+
+# Count moving average
+
+df_6_7 <- df_6%>%
+  mutate(MA_7 = rollmean(Availability, k = 7, fill = NA))
 
 # Bind columns
 df_6_7 <- bind_cols(df_6_1,df_6_2,df_6_3,df_6_4,df_6_5,df_6_6)
