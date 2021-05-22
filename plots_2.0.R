@@ -6,6 +6,7 @@ library(scales)
 library(ggforce)
 library(tools)
 library(zoo)
+library(ggrepel)
 
 # Median below 50 - manuscript ------------------------------------------
 
@@ -30,43 +31,42 @@ df_6 <- df_3 %>%
 df_6 <- df_6 %>%
  mutate(Scope = toTitleCase(Scope))
 
+# Second word to lowercase
 df_6 <- df_6 %>%
   mutate(Scope = str_replace_all(Scope, fixed("Medoxomil"), replacement = "medoxomil"))
+
+# First letter in Category to uppercase
+df_6 <- df_6 %>%
+  mutate(Category = toTitleCase(Category))
 
 #Make space between plus sign
 df_6$Scope<-gsub("+"," + ",df_6$Scope,fixed = TRUE)
 
+# Check structure
 str(df_6)
 
-# Build unqiue factors
+# Build unique factors
 df_6$Category <- factor(df_6$Category,levels=unique(df_6$Category))
 
 # Add moving average
 df_6_7 <- df_6%>%
-  mutate(MA_7 = rollmean(Availability, k = 7, fill = NA)) 
-  
-df_6_7 <- df_6_7 %>%
+  arrange(desc(Date)) %>% 
   group_by(Scope) %>%
-  summarise(n.sc =n(),
-            var.sc = var(MA_7,na.rm = TRUE),
-            sd.sc = sqrt(var.sc)) %>%
-          mutate(se.mpg = sd.sc / sqrt(n.sc),
-         lower.ci.sc = MA_7 - qt(1 - (0.05 / 2), n.sc - 1) * se.sc,
-         upper.ci.sc = MA_7 + qt(1 - (0.05 / 2), n.sc - 1) * se.sc)
-
-
+  mutate(MA_7 = rollmean(Availability, k = 7, fill = NA)) %>%
+  ungroup()
 
 # Plot all drugs in a list
 my_plots <- list( df_6_7 %>%
-  ggplot(aes(Date, MA_7))  +  geom_line(aes(col=Category))+ facet_wrap(~ Category + Scope) + theme_bw() + scale_x_date(labels = date_format("%m/%y"))+
+  ggplot(aes(Date, MA_7)) + geom_line(aes(col=Category))  +  facet_wrap(~ Category + Scope) + theme_bw() + scale_x_date(labels = date_format("%m/%y"))+
     theme(axis.title.x=element_blank(),axis.title.y = element_text(size = 20),panel.spacing.x = unit(1, "lines"),legend.position = "none")+ 
-    labs(y="Availability [%]")) 
+    labs(y="Availability [%]")  + annotate(geom = "point", x = as.Date("2020-03-04"),y = df_3$Availability , colour = "orange", size = 0.01)) 
+
 
 # Put all plots in one figure
 xx <-ggarrange(plotlist = my_plots)
 
 # Save results on disc
-ggsave(plot = xx,filename = "median_below_50_1.png",path = "D:/covid_drugs/Images", device = "png", dpi = 600,width = 20, height = 8, units = "in" )
+ggsave(plot = xx,filename = "median_below_50_3.png",path = "D:/covid_drugs/Images", device = "png", dpi = 600,width = 20, height = 8, units = "in" )
 
 
 # Median above 50 % - supplementary  -------------------------------------------------------
@@ -105,3 +105,5 @@ xx_2 <-ggarrange(plotlist = my_plots_2)
 # Save results on disc
 ggsave(plot = xx_1,filename = "median_above_50_1.png",path = "D:/covid_drugs/Images", device = "png", dpi = 600,width = 18, height = 8, units = "in" )
 ggsave(plot = xx_2,filename = "median_above_50_2.png",path = "D:/covid_drugs/Images", device = "png", dpi = 600,width = 18, height = 8, units = "in" )          
+
+?geom_label_repel

@@ -9,7 +9,7 @@ library(trelliscopejs)
 # Data_preparation --------------------------------------------------------
 
 #Load list of drugs
-drugs <- read_xls("C:/Users/Bartek/Desktop/Gdzie_po_lek_ publikacja/lista_lekow_internistycznych.xls")
+drugs <- read_xls("C:/Users/Bartek/Desktop/Gdzie_po_lek_ publikacja/kopia_lista_lekow_internistycznych.xls")
 colnames(drugs)[2] <- "Scope"
 drugs
 
@@ -47,7 +47,7 @@ df_3 <- df_2 %>%
 
 # Exploratory analysis with trelliscopejs ---------------------------------
 df_3 %>%
-  ggplot(aes(Date, Availability)) + geom_line(aes(col=kategoria))+
+  ggplot(aes(Date, Availability)) + geom_line(aes(col=Category))+
   facet_trelliscope(~ Scope)
 
 #long - ponad 1900 obrazkow

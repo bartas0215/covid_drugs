@@ -18,30 +18,28 @@ df_4 <- df_3 %>%
 # Plot acenocoumarol
 ace <-df_3 %>%
   filter(Scope == "acenocoumarol") %>%
-  ggplot(aes(Date, Availability)) + geom_line() + scale_y_continuous(limits = c(0,100)) + theme(panel.background = element_rect(fill = 'grey93'), axis.title.x=element_blank(),axis.title.y =element_blank()) + 
+  ggplot(aes(Date, Availability)) + geom_line() +  theme_bw() + scale_y_continuous(limits = c(0,100)) + theme(axis.title.x=element_blank(),axis.title.y =element_blank()) + 
   ggtitle("Acenocumarol") + scale_x_date(labels = date_format("%m/%y")) 
+
+ace_1 <- ace +   annotate(geom = "point", x = as.Date("2020-03-04"),y = df_3$Availability , colour = "orange", size = 1)
 
 #Plot nitrendipine
 nitr <- df_3 %>%
   filter(Scope == "nitrendipine") %>%
-  ggplot(aes(Date, Availability)) + geom_line() + scale_y_continuous(limits = c(0,100)) + theme(panel.background = element_rect(fill = 'grey93'),axis.title.x=element_blank(),axis.title.y =element_blank()) +
+  ggplot(aes(Date, Availability)) + geom_line() + theme_bw() +scale_y_continuous(limits = c(0,100)) + theme(axis.title.x=element_blank(),axis.title.y =element_blank()) +
   ggtitle("Nitrendipine") + scale_x_date(labels = date_format("%m/%y")) 
 
-#Plot diltiazem
-dilt <-df_3 %>%
-  filter(Scope == "diltiazem") %>%
-  ggplot(aes(Date, Availability)) + geom_line() + scale_y_continuous(limits = c(0,100)) + theme(panel.background = element_rect(fill = 'grey93'),axis.title.x=element_blank(),axis.title.y =element_blank()) +
-  ggtitle("Diltiazem") + scale_x_date(labels = date_format("%m/%y")) 
+nitr_1 <- nitr + annotate(geom = "point", x = as.Date("2020-03-04"),y = df_3$Availability , colour = "orange", size = 1)
 
 
 # Align all plots
-dy <- ggarrange(ace, nitr, dilt, labels = c("A","B","C"), ncol = 1, nrow = 3)
+dy <- ggarrange(ace_1, nitr_1, labels = c("A","B"), ncol = 1, nrow = 2)
 
 # Annotate figure 
 dy_1 <- annotate_figure(dy, left = text_grob("Availability [%]", rot = 90, size = 15))
 
 #Save on disc
-ggsave(plot = dy_1,filename = "decreasing_drugs.png",path = "D:/covid_drugs/Images", device = "png", dpi = 600 )
+ggsave(plot = dy_1,filename = "decreasing_drugs_2.png",path = "D:/covid_drugs/Images", device = "png", dpi = 600,width = 5, height = 8, units = "in" )
 
 
 

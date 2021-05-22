@@ -37,15 +37,15 @@ df_6_4 <- format(round(df_6_4$Mean, 2), nsmall = 2)
 df_6_4 <- df_6_4 %>%
   as_tibble()
 
-# Count max
+# Count min
 df_6_5 <- df_6 %>% 
   group_by(Scope) %>%
-  summarise(Max = max(Availability))
+  summarise(Min = min(Availability))
 
-# Count min
+# Count max
 df_6_6 <- df_6 %>% 
   group_by(Scope) %>%
-  summarise(Min = min(Availability))
+  summarise(Max = max(Availability))
 
 # Count moving average
 
@@ -67,14 +67,17 @@ df_6_8 <- df_6_8 %>%
 
 # Count range
 df_6_8 <- df_6_8 %>%
-  mutate(Range  = Max -Min)
+  mutate(Amplitude  = Max -Min)
 
 # Save file 
-write.xlsx(df_6_8, file = "D:/covid_drugs/Tables/decreasing_drugs.xlsx")
+write.xlsx(df_6_8, file = "D:/covid_drugs/Tables/median_below_50.xlsx")
 
 # Table - decrease more than 20 %  -----------------------------------------
 
 df_6 <- df_3 %>%
-  filter(Scope == c("acenocoumarol","nitrendipine", "diltiazem"))
+  filter(Scope == c("acenocoumarol","nitrendipine"))
+
+df_6 <- df_6 %>%
+  filter(between(Date,as.Date("2020-03-04"), as.Date("2020-12-31")))
 
 
