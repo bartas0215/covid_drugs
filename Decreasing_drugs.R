@@ -39,7 +39,7 @@ dy <- ggarrange(ace_1, nitr_1, labels = c("A","B"), ncol = 1, nrow = 2)
 dy_1 <- annotate_figure(dy, left = text_grob("Availability [%]", rot = 90, size = 15))
 
 #Save on disc
-ggsave(plot = dy_1,filename = "decreasing_drugs_2.png",path = "D:/covid_drugs/Images", device = "png", dpi = 600,width = 5, height = 8, units = "in" )
+ggsave(plot = dy_1,filename = "decreasing_drugs_2.jpeg",path = "D:/covid_drugs/Images", device = "jpeg", dpi = 600,width = 5, height = 8, units = "in" )
 
 
 
@@ -84,20 +84,42 @@ df_4_8 <- df_3 %>%
 
 # Filter valued drugs
 df_4_9 <- df_4_8 %>%
-  filter(Scope == c("vildagliptin","trandolapril","molsidomine","nadroparin","insulin glulisine","insulin detemir",
+  filter(Scope == c("diltiazem","vildagliptin","trandolapril","molsidomine","nadroparin","insulin glulisine","insulin detemir",
                     "hydrochlorothiazide+ramipril","glipizide","glyceryl trinitrate","dalteparin","ciprofibrate",
                     "cilazapril","amlodipine+losartan","amlodipine+atorvastatin","amiodarone"))
 
 
+# First letter to uppercase
+df_4_10 <- df_4_9 %>%
+  mutate(Scope = toTitleCase(Scope))
+
+#Make space between plus sign
+df_4_10$Scope<-gsub("+"," + ",df_4_10$Scope,fixed = TRUE)
+
+# Second word to lowercase x3
+df_4_10 <- df_4_10 %>%
+  mutate(Scope = str_replace_all(Scope, fixed("Detemir"), replacement = "detemir"))
+df_4_10 <- df_4_10 %>%
+  mutate(Scope = str_replace_all(Scope, fixed("Glulisine"), replacement = "glulisine"))
+df_4_10 <- df_4_10 %>%
+  mutate(Scope = str_replace_all(Scope, fixed("Trinitrate"), replacement = "trinitrate"))
+
+# Add moving average
+df_4_11 <- df_4_10%>%
+  arrange(desc(Date)) %>% 
+  group_by(Scope) %>%
+  mutate(MA_7 = rollmean(Availability, k = 7, fill = NA)) %>%
+  ungroup()
+
 
 # Plot all drugs in a list
-my_plots <- list( df_4_9 %>%
-                    ggplot(aes(Date, Availability))  +  geom_line()+ facet_wrap(~ Scope) + scale_x_date(labels = date_format("%m/%y"))+
-                    theme(axis.title.x=element_blank(),axis.title.y = element_text(size = 25),panel.spacing.x = unit(1, "lines"))+ 
-                    labs(y="Availability [%]"))
+my_plots <- list( df_4_11 %>%
+                    ggplot(aes(Date, MA_7))  + geom_line(aes(col=Category))+ facet_wrap(~ Category + Scope) + theme_bw() + scale_x_date(labels = date_format("%m/%y"))+
+                    theme(axis.title.x=element_blank(),axis.title.y = element_text(size = 25),panel.spacing.x = unit(1, "lines"),legend.position = "none")+ 
+                    labs(y="Availability [%]") + annotate(geom = "point", x = as.Date("2020-03-04"),y = df_3$Availability , colour = "orange", size = 0.01))
 
 # Put all plots in one figure
 xx <-ggarrange(plotlist = my_plots)
 
 # Save results on disc
-ggsave(plot = xx,filename = "Decrease_5_20.png",path = "D:/covid_drugs/Images", device = "png", dpi = 600,width = 17, height = 8, units = "in" )
+ggsave(plot = xx,filename = "Decrease_5_20.jpeg",path = "D:/covid_drugs/Images", device = "jpeg", dpi = 600,width = 17, height = 8, units = "in" )
